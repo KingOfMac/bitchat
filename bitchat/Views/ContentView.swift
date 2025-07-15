@@ -73,6 +73,7 @@ struct ContentView: View {
                                         if value.translation.width < -100 || (value.translation.width < -50 && value.velocity.width < -500) {
                                             showSidebar = true
                                             sidebarDragOffset = 0
+                                            isTextFieldFocused = false
                                         } else {
                                             sidebarDragOffset = 0
                                         }
@@ -254,6 +255,9 @@ struct ContentView: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         showSidebar.toggle()
                         sidebarDragOffset = 0
+                        if showSidebar {
+                            isTextFieldFocused = false
+                        }
                     }
                 }) {
                     HStack(spacing: 4) {

@@ -204,39 +204,67 @@ struct CustomThemeEditor: View {
         case .success(let urls):
             guard let url = urls.first else { return }
             
+            // Start accessing security-scoped resource
+            let isSecurityScoped = url.startAccessingSecurityScopedResource()
+            
+            defer {
+                if isSecurityScoped {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+            
             do {
                 let data = try Data(contentsOf: url)
-                let importedTheme = try JSONDecoder().decode(BitchatTheme.self, from: data)
+                
+                // First, let's validate it's valid JSON
+                guard let jsonString = String(data: data, encoding: .utf8) else {
+                    showAlert(title: "Import Failed", message: "File is not valid UTF-8 text")
+                    return
+                }
+                
+                // Check if it's valid JSON at all
+                do {
+                    _ = try JSONSerialization.jsonObject(with: data, options: [])
+                } catch {
+                    showAlert(title: "Import Failed", message: "File is not valid JSON: \(error.localizedDescription)")
+                    return
+                }
+                
+                // Try to decode as BitchatTheme
+                let importedTheme: BitchatTheme
+                do {
+                    importedTheme = try JSONDecoder().decode(BitchatTheme.self, from: data)
+                } catch {
+                    // Provide detailed error information
+                    var errorMessage = "Theme decode failed: "
+                    if let decodingError = error as? DecodingError {
+                        switch decodingError {
+                        case .keyNotFound(let key, _):
+                            errorMessage += "Missing required field '\(key.stringValue)'"
+                        case .typeMismatch(_, let context):
+                            errorMessage += "Type mismatch at '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'"
+                        case .valueNotFound(_, let context):
+                            errorMessage += "Missing value at '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'"
+                        case .dataCorrupted(let context):
+                            errorMessage += "Data corrupted at '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'"
+                        @unknown default:
+                            errorMessage += error.localizedDescription
+                        }
+                    } else {
+                        errorMessage += error.localizedDescription
+                    }
+                    showAlert(title: "Import Failed", message: errorMessage)
+                    return
+                }
                 
                 // Generate new ID to avoid conflicts
                 var newTheme = importedTheme
-                newTheme = BitchatTheme(
-                    id: "custom_\(UUID().uuidString)",
-                    name: importedTheme.name,
-                    description: importedTheme.description,
-                    backgroundColor: importedTheme.backgroundColor,
-                    secondaryBackgroundColor: importedTheme.secondaryBackgroundColor,
-                    primaryTextColor: importedTheme.primaryTextColor,
-                    secondaryTextColor: importedTheme.secondaryTextColor,
-                    systemTextColor: importedTheme.systemTextColor,
-                    accentColor: importedTheme.accentColor,
-                    mentionColor: importedTheme.mentionColor,
-                    hashtagColor: importedTheme.hashtagColor,
-                    excellentSignalColor: importedTheme.excellentSignalColor,
-                    goodSignalColor: importedTheme.goodSignalColor,
-                    fairSignalColor: importedTheme.fairSignalColor,
-                    weakSignalColor: importedTheme.weakSignalColor,
-                    poorSignalColor: importedTheme.poorSignalColor,
-                    dividerColor: importedTheme.dividerColor,
-                    unreadMessageColor: importedTheme.unreadMessageColor,
-                    favoriteColor: importedTheme.favoriteColor,
-                    followsSystemAppearance: importedTheme.followsSystemAppearance
-                )
+                newTheme.id = "custom_\(UUID().uuidString)"
                 
                 customTheme = newTheme
-                showAlert(title: "Imported", message: "Theme imported successfully")
+                showAlert(title: "Imported", message: "Theme '\(newTheme.name)' imported successfully")
             } catch {
-                showAlert(title: "Import Failed", message: "Invalid theme file format")
+                showAlert(title: "Import Failed", message: "Could not read file: \(error.localizedDescription)")
             }
         case .failure(let error):
             showAlert(title: "Import Failed", message: error.localizedDescription)

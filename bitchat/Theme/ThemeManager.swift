@@ -268,7 +268,10 @@ class ThemeManager: ObservableObject {
     }
     
     func importThemeFromJSON(_ jsonString: String) -> BitchatTheme? {
-        guard let data = jsonString.data(using: .utf8) else { return nil }
+        guard let data = jsonString.data(using: .utf8) else { 
+            print("ThemeManager: Failed to convert JSON string to data")
+            return nil 
+        }
         
         do {
             let theme = try JSONDecoder().decode(BitchatTheme.self, from: data)
@@ -277,6 +280,21 @@ class ThemeManager: ObservableObject {
             newTheme.id = "custom_\(UUID().uuidString)"
             return newTheme
         } catch {
+            print("ThemeManager: Failed to decode theme JSON - \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .keyNotFound(let key, _):
+                    print("ThemeManager: Missing required field '\(key.stringValue)'")
+                case .typeMismatch(_, let context):
+                    print("ThemeManager: Type mismatch at '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+                case .valueNotFound(_, let context):
+                    print("ThemeManager: Missing value at '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+                case .dataCorrupted(let context):
+                    print("ThemeManager: Data corrupted at '\(context.codingPath.map { $0.stringValue }.joined(separator: "."))'")
+                @unknown default:
+                    print("ThemeManager: Unknown decoding error: \(error)")
+                }
+            }
             return nil
         }
     }
