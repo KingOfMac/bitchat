@@ -1878,8 +1878,7 @@ class ChatViewModel: ObservableObject {
     // This method is kept for compatibility but should use ThemeManager in views
     
     
-    func formatMessageContent(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
-        let isDark = colorScheme == .dark
+    func formatMessageContent(_ message: BitchatMessage, colorScheme: ColorScheme, themeManager: ThemeManager) -> AttributedString {
         let contentText = message.content
         var processedContent = AttributedString()
         
@@ -1912,7 +1911,7 @@ class ChatViewModel: ObservableObject {
                 if !beforeText.isEmpty {
                     var normalStyle = AttributeContainer()
                     normalStyle.font = .system(size: 14, design: .monospaced)
-                    normalStyle.foregroundColor = isDark ? Color.white : Color.black
+                    normalStyle.foregroundColor = themeManager.primaryTextColor(for: colorScheme)
                     processedContent.append(AttributedString(beforeText).mergingAttributes(normalStyle))
                 }
                 
@@ -1922,10 +1921,10 @@ class ChatViewModel: ObservableObject {
                 matchStyle.font = .system(size: 14, weight: .semibold, design: .monospaced)
                 
                 if matchType == "mention" {
-                    matchStyle.foregroundColor = Color.orange
+                    matchStyle.foregroundColor = themeManager.mentionColor(for: colorScheme)
                 } else {
                     // Hashtag
-                    matchStyle.foregroundColor = Color.blue
+                    matchStyle.foregroundColor = themeManager.hashtagColor(for: colorScheme)
                     matchStyle.underlineStyle = .single
                 }
                 
@@ -1940,7 +1939,7 @@ class ChatViewModel: ObservableObject {
             let remainingText = String(contentText[lastEndIndex...])
             var normalStyle = AttributeContainer()
             normalStyle.font = .system(size: 14, design: .monospaced)
-            normalStyle.foregroundColor = isDark ? Color.white : Color.black
+            normalStyle.foregroundColor = themeManager.primaryTextColor(for: colorScheme)
             processedContent.append(AttributedString(remainingText).mergingAttributes(normalStyle))
         }
         
@@ -2090,23 +2089,22 @@ class ChatViewModel: ObservableObject {
         return result
     }
     
-    func formatMessage(_ message: BitchatMessage, colorScheme: ColorScheme) -> AttributedString {
+    func formatMessage(_ message: BitchatMessage, colorScheme: ColorScheme, themeManager: ThemeManager) -> AttributedString {
         var result = AttributedString()
         
-        let isDark = colorScheme == .dark
-        let primaryColor = isDark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
-        let secondaryColor = primaryColor.opacity(0.7)
+        let primaryColor = themeManager.primaryTextColor(for: colorScheme)
+        let secondaryColor = themeManager.secondaryTextColor(for: colorScheme)
         
         let timestamp = AttributedString("[\(formatTimestamp(message.timestamp))] ")
         var timestampStyle = AttributeContainer()
-        timestampStyle.foregroundColor = message.sender == "system" ? Color.gray : secondaryColor
+        timestampStyle.foregroundColor = message.sender == "system" ? themeManager.systemTextColor(for: colorScheme) : secondaryColor
         timestampStyle.font = .system(size: 12, design: .monospaced)
         result.append(timestamp.mergingAttributes(timestampStyle))
         
         if message.sender == "system" {
             let content = AttributedString("* \(message.content) *")
             var contentStyle = AttributeContainer()
-            contentStyle.foregroundColor = Color.gray
+            contentStyle.foregroundColor = themeManager.systemTextColor(for: colorScheme)
             contentStyle.font = .system(size: 12, design: .monospaced).italic()
             result.append(content.mergingAttributes(contentStyle))
         } else {
@@ -2149,7 +2147,7 @@ class ChatViewModel: ObservableObject {
                     if !beforeText.isEmpty {
                         var normalStyle = AttributeContainer()
                         normalStyle.font = .system(size: 14, design: .monospaced)
-                        normalStyle.foregroundColor = isDark ? Color.white : Color.black
+                        normalStyle.foregroundColor = themeManager.primaryTextColor(for: colorScheme)
                         processedContent.append(AttributedString(beforeText).mergingAttributes(normalStyle))
                     }
                     
@@ -2157,7 +2155,7 @@ class ChatViewModel: ObservableObject {
                     let mentionText = String(contentText[range])
                     var mentionStyle = AttributeContainer()
                     mentionStyle.font = .system(size: 14, weight: .semibold, design: .monospaced)
-                    mentionStyle.foregroundColor = Color.orange
+                    mentionStyle.foregroundColor = themeManager.mentionColor(for: colorScheme)
                     processedContent.append(AttributedString(mentionText).mergingAttributes(mentionStyle))
                     
                     lastEndIndex = range.upperBound
@@ -2169,7 +2167,7 @@ class ChatViewModel: ObservableObject {
                 let remainingText = String(contentText[lastEndIndex...])
                 var normalStyle = AttributeContainer()
                 normalStyle.font = .system(size: 14, design: .monospaced)
-                normalStyle.foregroundColor = isDark ? Color.white : Color.black
+                normalStyle.foregroundColor = themeManager.primaryTextColor(for: colorScheme)
                 processedContent.append(AttributedString(remainingText).mergingAttributes(normalStyle))
             }
             
