@@ -137,6 +137,27 @@ class ThemeManager: ObservableObject {
         return selectedTheme.favoriteColor.color
     }
     
+    func successColor(for colorScheme: ColorScheme) -> Color {
+        if selectedTheme.followsSystemAppearance {
+            return Color.green
+        }
+        return selectedTheme.favoriteColor.color // Using favoriteColor as fallback for now
+    }
+    
+    func warningColor(for colorScheme: ColorScheme) -> Color {
+        if selectedTheme.followsSystemAppearance {
+            return Color.orange
+        }
+        return selectedTheme.accentColor.color // Using accentColor as fallback for now
+    }
+    
+    func errorColor(for colorScheme: ColorScheme) -> Color {
+        if selectedTheme.followsSystemAppearance {
+            return Color.red
+        }
+        return selectedTheme.accentColor.color // Using accentColor as fallback for now
+    }
+    
     // MARK: - Signal Strength Colors
     
     func getRSSIColor(rssi: Int, colorScheme: ColorScheme) -> Color {

@@ -1137,6 +1137,7 @@ struct MessageContentView: View {
     let viewModel: ChatViewModel
     let colorScheme: ColorScheme
     let isMentioned: Bool
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         let content = message.content
