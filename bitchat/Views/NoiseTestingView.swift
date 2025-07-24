@@ -12,14 +12,15 @@ import SwiftUI
 struct NoiseTestingView: View {
     @ObservedObject var viewModel: ChatViewModel
     @Environment(\.colorScheme) var colorScheme
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var testChecklist = NoiseTestingHelper.shared.getTestChecklist()
     
     private var textColor: Color {
-        colorScheme == .dark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
+        themeManager.primaryTextColor(for: colorScheme)
     }
     
     private var backgroundColor: Color {
-        colorScheme == .dark ? Color.black : Color.white
+        themeManager.backgroundColor(for: colorScheme)
     }
     
     var body: some View {
@@ -43,9 +44,9 @@ struct NoiseTestingView: View {
                     HStack {
                         Image(systemName: status.icon)
                             .font(.system(size: 12))
-                            .foregroundColor(status == .noiseVerified ? Color.green : 
+                            .foregroundColor(status == .noiseVerified ? themeManager.successColor(for: colorScheme) :
                                            status == .noiseSecured ? textColor :
-                                           Color.red)
+                                           themeManager.errorColor(for: colorScheme))
                         
                         Text("\(nickname): \(status.description)")
                             .font(.system(size: 12, design: .monospaced))
@@ -58,11 +59,11 @@ struct NoiseTestingView: View {
                 if viewModel.connectedPeers.isEmpty {
                     Text("No peers connected")
                         .font(.system(size: 12, design: .monospaced))
-                        .foregroundColor(Color.gray)
+                        .foregroundColor(themeManager.secondaryTextColor(for: colorScheme))
                 }
             }
             .padding()
-            .background(Color.gray.opacity(0.1))
+            .background(themeManager.secondaryBackgroundColor(for: colorScheme).opacity(0.1))
             .cornerRadius(8)
             
             // Test Checklist
@@ -73,7 +74,7 @@ struct NoiseTestingView: View {
                     .textSelection(.enabled)
             }
             .padding()
-            .background(Color.gray.opacity(0.1))
+            .background(themeManager.secondaryBackgroundColor(for: colorScheme).opacity(0.1))
             .cornerRadius(8)
             
             // Debug Actions
@@ -93,7 +94,7 @@ struct NoiseTestingView: View {
                     }
                     viewModel.peerEncryptionStatus.removeAll()
                 }
-                .foregroundColor(Color.orange)
+                .foregroundColor(themeManager.warningColor(for: colorScheme))
                 
                 Button("Copy Logs") {
                     // Copy test results to clipboard

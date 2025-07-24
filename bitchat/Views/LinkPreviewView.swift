@@ -65,22 +65,22 @@ struct LinkPreviewView: View {
                     } else {
                         // Favicon or default icon
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.blue.opacity(0.1))
+                            .fill(themeManager.accentColor(for: colorScheme).opacity(0.1))
                             .frame(width: 60, height: 60)
                             .overlay(
                                 Image(systemName: "link")
                                     .font(.system(size: 24))
-                                    .foregroundColor(Color.blue)
+                                    .foregroundColor(themeManager.accentColor(for: colorScheme))
                             )
                     }
                     #else
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.blue.opacity(0.1))
+                        .fill(themeManager.accentColor(for: colorScheme).opacity(0.1))
                         .frame(width: 60, height: 60)
                         .overlay(
                             Image(systemName: "link")
                                 .font(.system(size: 24))
-                                .foregroundColor(Color.blue)
+                                .foregroundColor(themeManager.accentColor(for: colorScheme))
                         )
                     #endif
                 }
